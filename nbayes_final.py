@@ -77,19 +77,19 @@ print("---------------------------------------------------------")
 
 # Count spam and ham occurances for each word
 spam_counts = {}; ham_counts = {}
-arr = []
+alpha_arr = []
 I = []
-arr.append(0.1) 
+alpha_arr.append(0.1) 
 for i in range(-5,1):
-    arr.append(2**i)
+    alpha_arr.append(2**i)
     I.append(i)
 #print(word_spam_count)
 # Spamcounts
-p = []
-f = []
-r = []
-A = []
-def predict(alpha):
+Precision = []
+FSCORE = []
+RECALL = []
+ACCURACY = []
+def predict(alpha,data,data_label):
     
     print("Alpha = ",alpha)
     for word in spam_words:
@@ -128,73 +128,89 @@ def predict(alpha):
     # Predictiction for test documents
 
     predict_label = []
-    for ii in range(len(test_words)):
-        words = test_words[ii]
-        sp =pspam
-        hp =pham
+    for ii in range(len(data)):
+        words = data[ii]
+        spam_probablity_line =pspam
+        ham_probablity_line =pham
         for j in range(len(words)):
             word = words[j]
-            b = ham_probablity.get(word,(alpha/(num_ham + alpha * 20000)))
-            a = spam_probablity.get(word,(alpha/(num_spam + alpha * 20000)))
-            sp = sp * a
-            hp = hp * b
+            ham_probablity_word = ham_probablity.get(word,(alpha/(num_ham + alpha * 20000)))
+            spam_probablity_word = spam_probablity.get(word,(alpha/(num_spam + alpha * 20000)))
+            spam_probablity_line = spam_probablity_line * spam_probablity_word
+            ham_probablity_line = ham_probablity_line * ham_probablity_word
             
     # print(sp)
     # print(hp)
-        if (sp > hp):
+        if (spam_probablity_line > ham_probablity_line):
             predict_label.append(1)
         else:
             predict_label.append(0)
     # print("predict ",predict_label[ii])
+    ConfusionMatrix(predict_label,data_label)
+
+def ConfusionMatrix(predict_label,data_label):
 
     true_positive=0
     true_negative=0
     false_positive=0
     false_negative=0
     for i in range(len(predict_label)):
-        if(test_labels[i] ==1 and predict_label[i] ==1):
-            true_positive = true_positive + 1
-        elif(test_labels[i] ==0 and predict_label[i] ==0):
-            true_negative = true_negative + 1
-        elif(test_labels[i] ==0 and predict_label[i] ==1):
-            false_positive = false_positive + 1
-        elif(test_labels[i] ==1 and predict_label[i] ==0):
-            false_negative = false_negative + 1
-           
+                        if(data_label[i] ==1 and predict_label[i] ==1):
+                            true_positive = true_positive + 1
+                        elif(data_label[i] ==0 and predict_label[i] ==0):
+                            true_negative = true_negative + 1
+                        elif(data_label[i] ==0 and predict_label[i] ==1):
+                            false_positive = false_positive + 1
+                        elif(data_label[i] ==1 and predict_label[i] ==0):
+                            false_negative = false_negative + 1
+                        
     print("Confusion Matrix")
-    print(str(true_positive)+" "+str(false_positive))
-    #print(true_negative)
-    #print(false_positive)
-    print(str(false_negative)+" "+str(true_negative))   
-    
+    print(str(true_positive)+" "+str(false_positive))              
+    print(str(false_negative)+" "+str(true_negative))                      
     precision = true_positive/(true_positive+false_positive)
-    p.append(precision)
+    Precision.append(precision)
     print("Precision",precision)
     recall = true_positive/(true_positive+false_negative)
-    r.append(recall)
+    RECALL.append(recall)
     print("Recall",recall)
     fscore = (2*precision*recall)/(precision+recall)
     print(type(fscore))
-    f.append(fscore)
+    FSCORE.append(fscore)
     print("Fscore",fscore)
     accuracy= (true_positive+true_negative)/(true_positive+true_negative+false_positive+false_negative)
-    A.append(accuracy)
+    ACCURACY.append(accuracy)
     print("Accuracy",round(accuracy*100,3))
     print("---------------------------------------------------------")
+    return Precision ,RECALL , FSCORE ,ACCURACY
 
-for k in arr:
-    predict(k)
+
+
+
+
+
+
+       
+
+for k in alpha_arr:
+    predict(k,test_words,test_labels)
+
+for k in alpha_arr:
+    predict(k,train_words,train_labels)
     
-print(p)
-print(r)
-print(f)
+   
 
-print(A)
-plt.plot(arr,A,label='Accuracy')
-plt.plot(arr,f,label='Fscore')
-#plt.plot(arr,p,label='Precision')
-#plt.plot(arr,r,label='Recall')
+plt.plot(alpha_arr,ACCURACY[0:7],label='Test_Accuracy')
+plt.plot(alpha_arr,ACCURACY[7:],label='Train_Accuracy')
 plt.xlabel('Alpha')
+plt.title("Train Accuracy|Test Accuracy" )
+plt.legend()
+plt.show()
+
+
+plt.plot(alpha_arr,FSCORE[7:],label='Train_Fscore')
+plt.plot(alpha_arr,FSCORE[0:7],label='Test_Fscore')
+plt.xlabel('Alpha')
+plt.title("Train F-score|Test F-score" )
 plt.legend()
 plt.show()
 
